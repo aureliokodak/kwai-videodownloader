@@ -1,0 +1,30 @@
+# Lista de permissão: só o que está liberado abaixo vai para o repositório.
+# Perfis de navegador (com logins), cookies, coletas, downloads, runtime e logs ficam de fora.
+/*
+!/.gitignore
+!/.gitattributes
+!/.env.example
+!/LICENSE
+!/README.md
+!/requirements-portable.txt
+!/bootstrap.ps1
+!/start.py
+!/INICIAR-COM-DIAGNOSTICO.bat
+!/ABRIR-PAINEL.bat
+!/ATUALIZAR-YOUTUBE.bat
+!/app/
+!/tests/
+!/downloads/
+/downloads/*
+!/downloads/.gitkeep
+
+__pycache__/
+.pytest_cache/
+*.pyc
+*.bak
+*.log
+.env
+cookies.txt
+# Saídas de verificações feitas com perfis reais
+tests/*.png
+tests/*-results.json

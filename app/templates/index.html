@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kwai Analyzer Local</title>
+  <link rel="stylesheet" href="/static/app.css?v={{ asset_version|default('2.3.2') }}">
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div>
+        <h1>Kwai Analyzer Local <span>v2.3.2</span></h1>
+        <p>Colete vídeos, compare resultados e filtre seu ranking</p>
+      </div>
+      <div class="browser-state" id="browserState">Navegador: fechado</div>
+    </header>
+
+    <main class="grid">
+      <section class="card controls">
+        <h2>1. Analisar e criar ranking</h2>
+        <label for="platform">Plataforma</label>
+        <select id="platform"><option value="kwai">Kwai</option><option value="youtube">YouTube Shorts — download em massa</option><option value="tiktok">TikTok — download em massa</option><option value="instagram">Instagram Reels — download em massa</option></select>
+        <p id="platformHint" class="hint" hidden>Cole o canal do YouTube: somente a aba Shorts será analisada e baixada. Playlists e vídeos avulsos não são aceitos. Os filtros de métricas e duração continuam disponíveis. Arquivos em downloads/youtube.</p>
+        <p id="tiktokHint" class="hint" hidden>Na primeira vez, clique em Abrir navegador do TikTok e faça login na janela que abrir; o login fica salvo. Depois cole o perfil, ajuste os filtros e clique em Iniciar coleta. Deixe a janela aberta. Arquivos em downloads/tiktok.</p>
+        <p id="instagramHint" class="hint" hidden>Na primeira vez, clique em Abrir navegador do Instagram e faça login na janela que abrir; o login fica salvo. Depois cole o perfil, ajuste os filtros e clique em Iniciar coleta: a aba Reels do perfil é lida inteira. Fotos e carrosséis ficam de fora. Deixe a janela aberta. Arquivos em downloads/instagram.</p>
+        <label id="profileLabel" for="profileUrl">URL do perfil</label>
+        <input id="profileUrl" type="url" placeholder="https://www.kwai.com/@usuario ou link k.kwai.com/...">
+
+        <div class="form-grid">
+          <div>
+            <label for="limit">Máximo no ranking</label>
+            <select id="limit">
+              <option>50</option><option>100</option><option>200</option><option>300</option>
+              <option>500</option><option>1000</option><option>2000</option><option>5000</option><option value="20000" selected>Até o fim (limite de 20.000)</option>
+            </select>
+          </div>
+          <div>
+            <label for="minViews">Views mínimas</label>
+            <select id="minViews">
+              <option value="0">Qualquer quantidade</option>
+              <option value="10000">10K ou mais</option>
+              <option value="50000">50K ou mais</option>
+              <option value="100000" selected>100K ou mais</option>
+              <option value="250000">250K ou mais</option>
+              <option value="500000">500K ou mais</option>
+              <option value="1000000">1M ou mais</option>
+              <option value="5000000">5M ou mais</option>
+            </select>
+          </div>
+          <div>
+            <label for="hashtag">Hashtags exatas (opcional)</label>
+            <input id="hashtag" type="text" placeholder="#novela, #humor, #receitas" aria-describedby="collectionHashtagHint">
+            <small id="collectionHashtagHint">Separe por espaços, vírgulas ou ponto e vírgula. Basta conter uma delas.</small>
+          </div>
+          <div>
+            <label for="sortBy">Ordenar por</label>
+            <select id="sortBy">
+              <option value="views">Views</option>
+              <option value="likes">Curtidas</option>
+              <option value="comments">Comentários</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid compact-grid" id="kwaiOptions">
+          <div>
+            <label>Links automáticos</label>
+            <select id="topLinks">
+              <option value="10">Top 10</option><option value="20" selected>Top 20</option>
+              <option value="50">Top 50</option><option value="100">Top 100</option>
+              <option value="200">Top 200</option><option value="500">Top 500</option>
+            </select>
+          </div>
+          <label class="check-card"><input id="turbo" type="checkbox" checked><span><strong>Modo Turbo</strong><small>Tenta a coleta direta e usa rolagem quando necessário.</small></span></label>
+          <label class="check-card"><input id="autoLinks" type="checkbox" checked><span><strong>Coletar links ao terminar</strong><small>Busca links dos primeiros vídeos por visualizações.</small></span></label>
+        </div>
+
+        <div class="button-row">
+          <button id="openBrowser" class="secondary">Abrir navegador do Kwai</button>
+          <button id="analyze" class="primary">Iniciar coleta</button>
+          <button id="cancel" class="danger" disabled>Parar e salvar parcial</button>
+          <button id="links" class="secondary">2. Coletar / repetir Top</button>
+        </div>
+        <p class="hint">A coleta só inclui vídeos com as views mínimas e pelo menos uma das hashtags exatas informadas. Deixe as hashtags em branco para não filtrar por elas. O máximo considera apenas vídeos aprovados nesses filtros. Para mudar esses critérios, inicie uma nova coleta. Os filtros abaixo, no Ranking, refinam o resultado sem nova coleta.</p>
+      </section>
+
+      <section class="card status-card">
+        <div class="status-head"><h2>Status</h2><span class="pill" id="engine">—</span></div>
+        <div class="message" id="message">Pronto.</div>
+        <div class="stats">
+          <div><strong id="pages">0</strong><span>Páginas API</span></div>
+          <div><strong id="scanned">0</strong><span>Vistos / verificados</span></div>
+          <div><strong id="matched">0</strong><span>No ranking</span></div>
+          <div><strong id="linksCount">0</strong><span>Links disponíveis</span></div>
+          <div><strong id="feedSource">—</strong><span>Captura do feed</span></div>
+          <div><strong id="cursor">—</strong><span>Cursor</span></div>
+        </div>
+        <div class="progress"><div id="progressBar"></div></div>
+      </section>
+    </main>
+
+    <section class="card results-card">
+      <div class="results-head">
+        <div><h2>Ranking</h2><p id="resultMeta">Nenhum resultado carregado.</p></div>
+        <div class="actions">
+          <button id="selectAll">Selecionar filtrados</button>
+          <button id="clearSelection">Limpar seleção</button>
+          <button id="copyLinks">Copiar links</button>
+          <button id="updateDurations">Atualizar durações</button>
+          <a class="button" id="exportCsv" href="/api/export/csv">CSV</a>
+          <a class="button" id="exportJson" href="/api/export/json">JSON</a>
+          <a class="button" id="diagnostic" href="/api/diagnostic">Diagnóstico</a>
+          <button id="downloadSelected" class="primary">3. Baixar selecionados</button>
+        </div>
+      </div>
+      <form id="rankingFilters" class="ranking-filters" onsubmit="return false">
+        <label>Buscar<input id="search" type="search" placeholder="Título, hashtag ou ID"></label>
+        <label>Hashtags exatas<input name="hashtag" placeholder="#novela #parte1"></label>
+        <label>Visualizações mínimas<input name="views_min" type="number" min="0" step="1" placeholder="Sem mínimo"></label>
+        <label>Visualizações máximas<input name="views_max" type="number" min="0" step="1" placeholder="Sem máximo"></label>
+        <label>Curtidas mínimas<input name="likes_min" type="number" min="0" step="1" placeholder="Sem mínimo"></label>
+        <label>Curtidas máximas<input name="likes_max" type="number" min="0" step="1" placeholder="Sem máximo"></label>
+        <label>Comentários mínimas<input name="comments_min" type="number" min="0" step="1" placeholder="Sem mínimo"></label>
+        <label>Comentários máximas<input name="comments_max" type="number" min="0" step="1" placeholder="Sem máximo"></label>
+        <label>Duração mínima (segundos)<input name="duration_seconds_min" type="number" min="0" step="any" placeholder="Sem mínimo" aria-describedby="durationHint"></label>
+        <label>Duração máxima (segundos)<input name="duration_seconds_max" type="number" min="0" step="any" placeholder="Sem máximo" aria-describedby="durationHint"></label>
+        <label>Link<select name="link"><option value="">Todos</option><option value="yes">Disponível</option><option value="no">Pendente</option></select></label>
+        <label>Mídia direta<select name="media"><option value="">Todas</option><option value="yes">Disponível</option><option value="no">Pendente</option></select></label>
+        <label>Fonte<select name="source"><option value="">Todas</option><option value="feed-api">Coleta direta</option><option value="dom-card">Coleta visual</option><option value="youtube">YouTube</option><option value="tiktok">TikTok</option><option value="instagram">Instagram</option></select></label>
+        <label>Ordenar por<select name="sort"><option value="views">Visualizações</option><option value="likes">Curtidas</option><option value="comments">Comentários</option></select></label>
+        <label>Ordem<select name="direction"><option value="desc">Maior para menor</option><option value="asc">Menor para maior</option></select></label>
+        <label>Top<select name="top"><option value="">Todos</option><option>10</option><option>20</option><option>50</option><option>100</option></select></label>
+        <button type="button" id="resetFilters">Limpar filtros</button>
+      </form>
+      <div class="table-tools"><span id="filterHint">CSV, JSON e seleção usam todos os resultados filtrados, incluindo outras páginas. Hashtags combinadas exigem todas as tags. Métricas desconhecidas aparecem como — e não atendem filtros numéricos.</span><span id="selectionCount">0 selecionados</span></div>
+      <div class="table-tools" id="durationHint">Duração: 60 segundos = 1 minuto. Deixe vazio para incluir todas. Vídeos sem duração informada não entram no filtro de duração. Para completar um ranking já coletado, use Atualizar durações (requer mídia direta disponível).</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>#</th><th>Thumb</th><th>Views</th><th>Likes</th><th>Comentários</th><th>Duração</th><th>Título</th><th>ID</th><th>Link</th><th>Fonte</th><th>Mídia</th></tr></thead>
+          <tbody id="resultsBody"></tbody>
+        </table>
+      </div>
+      <div class="table-tools"><button id="previousPage">Anterior</button><span id="pageMeta"></span><button id="nextPage">Próxima</button></div>
+    </section>
+
+    <section class="card download-card">
+      <div class="status-head"><h2>Downloads</h2><span class="pill" id="downloadPill">parado</span></div>
+      <button id="cancelDownload" class="danger" hidden>Parar downloads</button>
+      <div id="downloadMessage">Nenhum download em andamento.</div>
+      <div class="download-list" id="downloadList"></div>
+    </section>
+  </div>
+  <script src="/static/ranking.js?v={{ asset_version|default('2.3.2') }}"></script>
+  <script src="/static/app.js?v={{ asset_version|default('2.3.2') }}"></script>
+</body>
+</html>
